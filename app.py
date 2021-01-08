@@ -52,6 +52,7 @@ def delete_tutorial(tutorial_id):
 
 if __name__ == '__main__':
     app.run()
+# You can make tests nn Python console:
 # from app import client
 # res = client.put('/tutorials/2', json = {'description': 'Put routes update'}) --- PUT test
 # res = client.delete('/tutorials/2') --- DELETE test
