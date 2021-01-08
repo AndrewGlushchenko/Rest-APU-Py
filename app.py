@@ -1,61 +1,101 @@
 from typing import Optional, Dict
 
 from flask import Flask, jsonify, request
+import sqlalchemy as db
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from flask_jwt_extended import JWTManager
+from config import Config
 
 app = Flask(__name__)
+app.config.from_object(Config)
 
 client = app.test_client()
 
-tutorials = [
-    {
-        'id': '1',
-        'title': 'Video Intro',
-        'description': 'GET, POST routes'
-    },
-    {
-        'id': '2',
-        'title': 'Video More',
-        'description': 'PUT, DELETE rotes'
-    }
-]
+engine = create_engine('sqlite:///db.sqlite')
+
+session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+
+Base = declarative_base()
+Base.query = session.query_property()
+
+jwt = JWTManager(app)
+
+from models import *
+
+Base.metadata.create_all(bind=engine)
 
 
-@app.route('/tutorials', methods=['GET'])
+@app.route('/elements', methods=['GET'])
 def get_list():
-    return jsonify(tutorials)
+    elements = NW_Elements.query.all()
+    serialized = []
+    for element in elements:
+        serialized.append({
+            'id':element.id,
+            'ip_address': element.ip_address,
+            'name': element.name,
+            'description': element.description
+        })
+    return jsonify(serialized)
 
 
-@app.route('/tutorials', methods=['POST'])
+@app.route('/elements', methods=['POST'])
 def update_list():
-    new_one = request.json
-    tutorials.append(new_one)
-    return jsonify(tutorials)
+    new_one = NW_Elements(**request.json)
+    session.add(new_one)
+    session.commit()
+    serialized = {
+        'id': new_one.id,
+        'ip_address': new_one.ip_address,
+        'name': new_one.name,
+        'description': new_one.description
+    }
+    return jsonify(serialized)
 
 
-@app.route('/tutorials/<int:tutorial_id>', methods=['PUT'])
-def update_tutorial(tutorial_id):
-    item = next((x for x in tutorials if x['id'] == str(tutorial_id)), None)
+@app.route('/elements/<int:element_id>', methods=['PUT'])
+def update_element(element_id):
+    item = NW_Elements.query.filter(NW_Elements.id == element_id).first()
     params = request.json
     if not item:
-        return {'message': 'No tutorials with this id'}, 400
-    item.update(params)
-    return item
+        return {'message': 'No elements with this id'}, 400
+    for key, value in params.items():
+        setattr(item, key, value)
+    session.commit()
+    serialized = {
+        'id': item.id,
+        'ip_address': item.ip_address,
+        'name': item.name,
+        'description': item.description
+    }
+    return serialized
 
-@app.route('/tutorials/<int:tutorial_id>', methods=['DELETE'])
-def delete_tutorial(tutorial_id):
-    idx, _ = next((x for x in enumerate(tutorials) if x[1]['id'] == str(tutorial_id)), (None, None))
-
-    if not idx:
+@app.route('/elements/<int:element_id>', methods=['DELETE'])
+def delete_element(element_id):
+    item = NW_Elements.query.filter(NW_Elements.id == element_id).first()
+    if not item:
         return {'message': 'No tutorials with this id'}, 400
-    tutorials.pop(idx)
+    session.delete(item)
+    session.commit()
     return '', 204
+
+@app.route('/register', methods=['POST'])
+def register():
+    params = request.json
+    user = User(**params)
+    session.add(user)
+    session.commit()
+    token = user.get_token()
+    return {'access_token': token}
+
+
+@app.teardown_appcontext
+def shutdown_session(exeption=None):
+    session.remove()
+
 
 if __name__ == '__main__':
     app.run()
-# You can make tests nn Python console:
-# from app import client
-# res = client.put('/tutorials/2', json = {'description': 'Put routes update'}) --- PUT test
-# res = client.delete('/tutorials/2') --- DELETE test
-# res = client.post('/tutorials', json= {'id':'3','title':'video2',"description":'POST test'}) --- POST test
-# res = client.get('/tutorials') --- GET test
-# res.get_json()
+
