@@ -12,6 +12,7 @@ from passlib.hash import bcrypt
 class NW_Elements(Base):
     __tablename__ = 'elements'
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     ip_address = db.Column(db.String(15), nullable=False)
     name = db.Column(db.String(80),nullable=False)
     description = db.Column(db.String(500),nullable=False)
@@ -22,9 +23,9 @@ class User(Base):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
-    email = db.Column(db.String(40), nullable=False)
+    email = db.Column(db.String(40), nullable=False, unique=True)
     password = db.Column(db.String(100), nullable=False)
- #   networks = relationship('NW_Elements', backref='user', lazy=True)
+    elements = relationship('NW_Elements', backref='user', lazy=True)
 
     def __init__(self, **kwargs):
         self.name = kwargs.get('name')
@@ -50,7 +51,7 @@ pass
 
 
 def AddElements(id_el, addr, name_el, decsr=''):
-    v1 = NW_Elements(id=id_el, ip_address=addr, name=name_el, description=decsr)
+    v1 = NW_Elements(id=id_el, user_id=1, ip_address=addr, name=name_el, description=decsr)
     session.add(v1)
     session.commit()
     return

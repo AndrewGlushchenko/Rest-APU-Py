@@ -36,3 +36,11 @@ tutorials = [
 ]
 
 res = client.post('/register', json={'name':'testuser', 'email':'test@gmail.com','password':'123456'})
+
+log = client.post('/login', json={'email':'test@gmail.com','password':'123456'})
+head_a = 'Bearer '+log.get_json()['access_token']
+log.get_json()
+res = client.get('/elements', headers={'Authorization':'Bearer  '})
+res.get_json()
+res = client.post('/elements', json= {'id':'21','name':'Element21', 'ip_address':'10.21.0.21', 'description':'POST test'}, headers={'Authorization': head_a})
+
