@@ -5,10 +5,10 @@
 
 # You can make tests nn Python console:
 # from app import client
-# res = client.put('/tutorials/2', json = {'description': 'Put routes update'}) --- PUT test
-# res = client.delete('/tutorials/2') --- DELETE test
-# res = client.post('/tutorials', json= {'id':'3','title':'video2',"description":'POST test'}) --- POST test
-# res = client.get('/tutorials') --- GET test
+# res = client.put('/elements/2', json = {'description': 'Put routes update'}) --- PUT test
+# res = client.delete('/elements/2') --- DELETE test
+# res = client.post('/elements', json= {'id':'3','title':'video2',"description":'POST test'}) --- POST test
+# res = client.get('/elements') --- GET test
 # res.get_json()
 
 #item = next((x for x in tutorials if x['id'] == str(tutorial_id)), None)
