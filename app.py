@@ -12,6 +12,7 @@ from  apispec import APISpec
 from flask_apispec.extension import FlaskApiSpec
 from schemas import ElementSchema, UserSchema, AuthSchema
 from flask_apispec import use_kwargs, marshal_with
+import logging
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -37,20 +38,36 @@ app.config.update({
         openapi_version='2.0',
         plugins=[MarshmallowPlugin()]
     ),
-    'APISPEC_SWAGGER_URL':'/helper/'
+    'APISPEC_SWAGGER_URL':'/swigger/'
 })
 
 from models import *
 
 Base.metadata.create_all(bind=engine)
 
+def setup_logger():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+    file_handler = logging.FileHandler('log/api.log')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    return logger
+
+
+logger = setup_logger()
+
 
 @app.route('/elements', methods=['GET'])
 @jwt_required
 @marshal_with(ElementSchema(many=True))
 def get_list():
-    user_n = get_jwt_identity()
-    elements = NW_Elements.query.filter(NW_Elements.user_id==user_n)
+    try:
+        user_n = get_jwt_identity()
+        elements = NW_Elements.query.filter(NW_Elements.user_id==user_n)
+    except Exception as e:
+        logger.warning(f'user:{user_n} elements - read action failed with errors: {e}')
+        return {'message': str(e)}, 400
     return elements
 
 
@@ -59,10 +76,14 @@ def get_list():
 @use_kwargs(ElementSchema)
 @marshal_with(ElementSchema)
 def update_list(**kwargs):
-    user_n = get_jwt_identity()
-    new_one = NW_Elements(user_id=user_n, **kwargs)
-    session.add(new_one)
-    session.commit()
+    try:
+        user_n = get_jwt_identity()
+        new_one = NW_Elements(user_id=user_n, **kwargs)
+        session.add(new_one)
+        session.commit()
+    except Exception as e:
+        logger.warning(f'user: {user_n}, elements - create action failed with errors: {e}')
+        return {'message': str(e)}, 400
     return new_one
 
 
@@ -71,35 +92,52 @@ def update_list(**kwargs):
 @use_kwargs(ElementSchema)
 @marshal_with(ElementSchema)
 def update_element(element_id, **kwargs):
-    user_n = get_jwt_identity()
-    item = NW_Elements.query.filter(NW_Elements.id == element_id, NW_Elements.user_id==user_n).first()
-    if not item:
-        return {'message': 'No elements with this id'}, 400
-    for key, value in kwargs.items():
-        setattr(item, key, value)
-    session.commit()
+    try:
+        user_n = get_jwt_identity()
+        item = NW_Elements.query.filter(NW_Elements.id == element_id, NW_Elements.user_id==user_n).first()
+        if not item:
+            logger.warning(
+                f'user: {user_n}, No elements with this id: {element_id} - update action failed with errors: 400')
+            return {'message': 'No elements with this id'}, 400
+        for key, value in kwargs.items():
+            setattr(item, key, value)
+        session.commit()
+    except Exception as e:
+        logger.warning(f'user: {user_n}, element id: {element_id} - update action failed with errors: {e}')
+        return {'message': str(e)}, 400
     return item
 
 @app.route('/elements/<int:element_id>', methods=['DELETE'])
 @jwt_required
 @marshal_with(ElementSchema)
 def delete_element(element_id):
-    user_n = get_jwt_identity()
-    item = NW_Elements.query.filter(NW_Elements.id == element_id, NW_Elements.user_id==user_n).first()
-    if not item:
-        return {'message': 'No tutorials with this id'}, 400
-    session.delete(item)
-    session.commit()
+    try:
+        user_n = get_jwt_identity()
+        item = NW_Elements.query.filter(NW_Elements.id == element_id, NW_Elements.user_id==user_n).first()
+        if not item:
+            logger.warning(
+                f'user: {user_n}, No elements with this id: {element_id} - update action failed with errors: 400')
+            return {'message': 'No tutorials with this id'}, 400
+        session.delete(item)
+        session.commit()
+    except Exception as e:
+        logger.warning(f'user: {user_n}, element id: {element_id} - delete action failed with errors: {e}')
+        return {'message': str(e)}, 400
     return '', 204
 
 @app.route('/register', methods=['POST'])
 @use_kwargs(UserSchema)
 @marshal_with(AuthSchema)
 def register(**kwargs):
-    user = User(**kwargs)
-    session.add(user)
-    session.commit()
-    token = user.get_token()
+    try:
+        user = User(**kwargs)
+        session.add(user)
+        session.commit()
+        token = user.get_token()
+        logger.warning(f'user: {kwargs["email"]} - register user action success')
+    except Exception as e:
+        logger.warning(f'user: {kwargs["email"]} - register user action failed with errors: {e}')
+        return {'message': str(e)}, 400
     return {'access_token': token}
 
 
@@ -107,14 +145,30 @@ def register(**kwargs):
 @use_kwargs(UserSchema(only=('email', 'password')))
 @marshal_with(AuthSchema)
 def login(**kwargs):
-    user = User.authenticate(**kwargs)
-    token = user.get_token()
+    try:
+        user = User.authenticate(**kwargs)
+        token = user.get_token()
+        logger.warning(f'user: {user.email} - login user action success')
+    except Exception as e:
+        logger.warning(f'user: {kwargs["email"]} - login user action failed with errors: {e}')
+        return {'message': str(e)}, 400
     return {'access_token': token}
 
 
 @app.teardown_appcontext
 def shutdown_session(exeption=None):
     session.remove()
+    logger.warning(f'Close servers')
+
+@app.errorhandler(422)
+def error_handler(err):
+    headers = err.data.get('headers',None)
+    messages = err.data.get('messages', ['Invalid customer request...'])
+    logger.warning(f'Invalid input params: {massages}')
+    if headers:
+        return jsonify({'message': messages }), 400, headers
+    else:
+        return jsonify({'message': messages}), 400
 
 
 docs.register(get_list)
@@ -126,5 +180,6 @@ docs.register(login)
 
 
 if __name__ == '__main__':
+    logger.warning(f'Start server')
     app.run()
 
