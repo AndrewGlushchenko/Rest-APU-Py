@@ -1,5 +1,6 @@
-from typing import Optional, Dict
 
+
+from typing import Optional, Dict
 from flask import Flask, jsonify, request
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -64,7 +65,8 @@ logger = setup_logger()
 def get_list():
     try:
         user_n = get_jwt_identity()
-        elements = NW_Elements.query.filter(NW_Elements.user_id==user_n)
+  #      elements = NW_Elements.query.filter(NW_Elements.user_id==user_n).all()
+        elements = NW_Elements.getElementList(user_id=user_n)
     except Exception as e:
         logger.warning(f'user:{user_n} elements - read action failed with errors: {e}')
         return {'message': str(e)}, 400
@@ -79,8 +81,7 @@ def update_list(**kwargs):
     try:
         user_n = get_jwt_identity()
         new_one = NW_Elements(user_id=user_n, **kwargs)
-        session.add(new_one)
-        session.commit()
+        new_one.save()
     except Exception as e:
         logger.warning(f'user: {user_n}, elements - create action failed with errors: {e}')
         return {'message': str(e)}, 400
@@ -94,18 +95,13 @@ def update_list(**kwargs):
 def update_element(element_id, **kwargs):
     try:
         user_n = get_jwt_identity()
-        item = NW_Elements.query.filter(NW_Elements.id == element_id, NW_Elements.user_id==user_n).first()
-        if not item:
-            logger.warning(
-                f'user: {user_n}, No elements with this id: {element_id} - update action failed with errors: 400')
-            return {'message': 'No elements with this id'}, 400
-        for key, value in kwargs.items():
-            setattr(item, key, value)
-        session.commit()
+        item = NW_Elements.get(element_id, user_n)
+        item.update(**kwargs)
     except Exception as e:
         logger.warning(f'user: {user_n}, element id: {element_id} - update action failed with errors: {e}')
         return {'message': str(e)}, 400
     return item
+
 
 @app.route('/elements/<int:element_id>', methods=['DELETE'])
 @jwt_required
@@ -113,17 +109,13 @@ def update_element(element_id, **kwargs):
 def delete_element(element_id):
     try:
         user_n = get_jwt_identity()
-        item = NW_Elements.query.filter(NW_Elements.id == element_id, NW_Elements.user_id==user_n).first()
-        if not item:
-            logger.warning(
-                f'user: {user_n}, No elements with this id: {element_id} - update action failed with errors: 400')
-            return {'message': 'No tutorials with this id'}, 400
-        session.delete(item)
-        session.commit()
+        item = NW_Elements.get(element_id, user_n)
+        item.delete()
     except Exception as e:
         logger.warning(f'user: {user_n}, element id: {element_id} - delete action failed with errors: {e}')
         return {'message': str(e)}, 400
     return '', 204
+
 
 @app.route('/register', methods=['POST'])
 @use_kwargs(UserSchema)

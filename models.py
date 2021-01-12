@@ -16,7 +16,59 @@ class NW_Elements(Base):
     ip_address = db.Column(db.String(15), nullable=False)
     name = db.Column(db.String(80),nullable=False)
     description = db.Column(db.String(500),nullable=False)
-pass
+
+    @classmethod
+    def getElementList(cls, user_id):
+        try:
+            elements = cls.query.filter(cls.user_id == user_id).all()
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        return elements
+    pass
+
+    def save(self):
+        try:
+            session.add(self)
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+    pass
+
+    @classmethod
+    def get(cls, element_id, user_id):
+        element = cls.query.filter(cls.id == element_id, cls.user_id == user_id).first()
+        try:
+            if not element:
+                raise Exception('No element with this id')
+        except Exception:
+            session.rollback()
+            raise
+        return element
+    pass
+
+    def update(self, **kwargs):
+        try:
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+    pass
+
+
+    def delete(self):
+        try:
+            session.delete(self)
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+    pass
+
 
 
 class User(Base):
@@ -47,12 +99,8 @@ class User(Base):
             raise Exception('No user with this password')
         return user
     pass
-pass
 
 
-def AddElements(id_el, addr, name_el, decsr=''):
-    v1 = NW_Elements(id=id_el, user_id=1, ip_address=addr, name=name_el, description=decsr)
-    session.add(v1)
-    session.commit()
-    return
-pass
+def AddElements(id_el, id_us,  addr, name_el, decsr=''):
+    v1 = NW_Elements(id=id_el, user_id=id_us, ip_address=addr, name=name_el, description=decsr)
+    v1.save()
