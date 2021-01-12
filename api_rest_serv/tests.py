@@ -1,4 +1,4 @@
-from app import *
+from . import *
 
 # NOTES: First element in bd have to use id=11
 #AddElements('11','10.10.0.1', 'Element1')

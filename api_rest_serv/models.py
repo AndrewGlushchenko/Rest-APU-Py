@@ -2,7 +2,7 @@
 # REST API project v0.1
 # Data models module
 #
-from app import db, session, Base
+from . import db, session, Base
 from sqlalchemy.orm import relationship
 from flask_jwt_extended import create_access_token
 from datetime import timedelta

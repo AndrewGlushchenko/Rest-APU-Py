@@ -1,5 +1,3 @@
-
-
 from typing import Optional, Dict
 from flask import Flask, jsonify, request
 import sqlalchemy as db
@@ -7,11 +5,11 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
-from config import Config
+from .config import Config
 from apispec.ext.marshmallow import MarshmallowPlugin
-from  apispec import APISpec
+from apispec import APISpec
 from flask_apispec.extension import FlaskApiSpec
-from schemas import ElementSchema, UserSchema, AuthSchema
+from .schemas import ElementSchema, UserSchema, AuthSchema
 from flask_apispec import use_kwargs, marshal_with
 import logging
 
@@ -42,9 +40,12 @@ app.config.update({
     'APISPEC_SWAGGER_URL':'/swigger/'
 })
 
-from models import *
+
+from .models import *
+
 
 Base.metadata.create_all(bind=engine)
+
 
 def setup_logger():
     logger = logging.getLogger(__name__)
@@ -65,7 +66,6 @@ logger = setup_logger()
 def get_list():
     try:
         user_n = get_jwt_identity()
-  #      elements = NW_Elements.query.filter(NW_Elements.user_id==user_n).all()
         elements = NW_Elements.getElementList(user_id=user_n)
     except Exception as e:
         logger.warning(f'user:{user_n} elements - read action failed with errors: {e}')
@@ -169,9 +169,4 @@ docs.register(update_element)
 docs.register(delete_element)
 docs.register(register)
 docs.register(login)
-
-
-if __name__ == '__main__':
-    logger.warning(f'Start server')
-    app.run()
 
