@@ -8,17 +8,18 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 elements = Blueprint('elements', __name__)
 
+
 @elements.route('/elements', methods=['GET'])
 @jwt_required
 @marshal_with(ElementSchema(many=True))
 def get_list():
     try:
         user_n = get_jwt_identity()
-        elements = NW_Elements.getElementList(user_id=user_n)
+        n_elements = NW_Elements.getElementList(user_id=user_n)
     except Exception as e:
         logger.warning(f'user:{user_n} elements - read action failed with errors: {e}')
         return {'message': str(e)}, 400
-    return elements
+    return n_elements
 
 
 @elements.route('/elements', methods=['POST'])
@@ -69,7 +70,7 @@ def delete_element(element_id):
 def error_handler(err):
     headers = err.data.get('headers', None)
     messages = err.data.get('messages', ['Invalid customer request...'])
-    logger.warning(f'Invalid input params: {massages}')
+    logger.warning(f'Invalid input params: {messages}')
     if headers:
         return jsonify({'message': messages}), 400, headers
     else:

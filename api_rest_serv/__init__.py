@@ -16,6 +16,8 @@ app.config.from_object(Config)
 client = app.test_client()
 
 engine = create_engine('sqlite:///db.sqlite')
+#engine = Config.SQLALCHEMY_DATABASE_URI
+
 
 session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
@@ -36,7 +38,9 @@ app.config.update({
     'APISPEC_SWAGGER_URL':'/swigger/'
 })
 
+
 from .models import *
+
 
 Base.metadata.create_all(bind=engine)
 
@@ -50,15 +54,19 @@ def setup_logger():
     logger.addHandler(file_handler)
     return logger
 
+
 logger = setup_logger()
 
+
 @app.teardown_appcontext
-def shutdown_session(exeption=None):
+def shutdown_session(exception=None):
     session.remove()
     logger.warning(f'Close server.')
 
+
 from .main.views import elements
 from .users.views import users
+
 
 app.register_blueprint(elements)
 app.register_blueprint(users)

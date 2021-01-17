@@ -1,8 +1,4 @@
 
-
-
-
-
 # You can make tests nn Python console:
 # from app import client
 # res = client.put('/elements/2', json = {'description': 'Put routes update'}) --- PUT test

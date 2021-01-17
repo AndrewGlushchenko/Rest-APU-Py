@@ -3,7 +3,10 @@ from flask import Blueprint, jsonify
 from api_rest_serv import logger, session, docs
 from api_rest_serv.schemas import UserSchema, AuthSchema
 from flask_apispec import use_kwargs, marshal_with
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from api_rest_serv.models import User
+from api_rest_serv.base_view import BaseView
+
 
 users = Blueprint('users', __name__)
 
@@ -38,6 +41,20 @@ def login(**kwargs):
     return {'access_token': token}
 
 
+class ProfileView(BaseView):
+    @jwt_required
+    @marshal_with(UserSchema)
+    def get(self):
+        user_id = get_jwt_identity()
+        try:
+            user = User.query.get(user_id)
+            if not user:
+                raise Exception('User not found.')
+        except Exception as e:
+            logger.warning(f'user: {user_id} - failed read profile with errors: {e}')
+        return user
+
+
 @users.errorhandler(422)
 def error_handler(err):
     headers = err.data.get('headers',None)
@@ -51,3 +68,4 @@ def error_handler(err):
 
 docs.register(register, blueprint='users')
 docs.register(login, blueprint='users')
+ProfileView.register(users, docs, '/profile', 'profileview')
