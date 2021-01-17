@@ -9,14 +9,11 @@
 
 #item = next((x for x in tutorials if x['id'] == str(tutorial_id)), None)
 
-
-
 #AddElements('11','10.10.0.1', 'Element1')
 #AddElements('12','10.10.0.2', 'Element2')
 #AddElements('13','10.10.0.3', 'Element3')
 #AddElements('14','10.10.0.4', 'Element4')
 #AddElements('15','10.10.0.5', 'Element5')
-
 
 tutorials = [
     {
