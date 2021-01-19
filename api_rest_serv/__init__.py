@@ -16,7 +16,7 @@ app.config.from_object(Config)
 
 client = app.test_client()
 
-engine = create_engine('sqlite:///db.sqlite')
+engine = create_engine('sqlite:///db/db.sqlite')
 #engine = Config.SQLALCHEMY_DATABASE_URI
 
 

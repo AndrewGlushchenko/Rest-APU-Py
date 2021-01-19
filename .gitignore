@@ -119,7 +119,6 @@ venv.bak/
 
 # mkdocs documentation
 /site
-/tmp
 
 # mypy
 .mypy_cache/
@@ -132,3 +131,6 @@ dmypy.json
 # Not used code
 .not_used_code.py
 tmp/not_used_code.py
+/tmp
+/db
+*.sqlite
