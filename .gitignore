@@ -129,5 +129,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Not used code
 .not_used_code.py
-not_used_code.py
+tmp/not_used_code.py
