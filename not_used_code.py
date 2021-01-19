@@ -37,3 +37,6 @@ res = client.get('/elements', headers={'Authorization':'Bearer  '})
 res.get_json()
 res = client.post('/elements', json= {'id':'21','name':'Element21', 'ip_address':'10.21.0.21', 'description':'POST test'}, headers={'Authorization': head_a})
 
+curl --header "Content-Type: application/json"  --request POST  --data '{"email":"test@gmail.com","password":"123456"}' http://localhost:5000/login
+
+
