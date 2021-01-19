@@ -1,3 +1,7 @@
+# (C) Andrew Glushchenko 2020
+# REST API project v0.1
+# Base view for blue prints
+#
 from flask import jsonify
 from flask_apispec.views import MethodResource
 from . import logger

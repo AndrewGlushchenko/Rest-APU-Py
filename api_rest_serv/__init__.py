@@ -1,3 +1,7 @@
+# (C) Andrew Glushchenko 2020
+# REST API project v0.1
+# Main module
+#
 from flask import Flask, jsonify, request
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -11,7 +15,6 @@ from flask_apispec.extension import FlaskApiSpec
 import logging
 from flask_cors import CORS
 
-print("KEY:", Config.SECRET_KEY)
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -19,7 +22,7 @@ app.config.from_object(Config)
 client = app.test_client()
 
 engine = create_engine('sqlite:///db/db.sqlite')
-#engine = Config.SQLALCHEMY_DATABASE_URI
+#engine = Config.SQLALCHEMY_DATABASE_URI # for Postgres configuration
 
 
 session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))

@@ -1,4 +1,7 @@
-
+# (C) Andrew Glushchenko 2020
+# REST API project v0.1
+# Blue prints for application routes
+#
 from flask import Blueprint, jsonify
 from api_rest_serv import logger, docs
 from api_rest_serv.schemas import ElementSchema

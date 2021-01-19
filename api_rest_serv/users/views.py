@@ -1,4 +1,7 @@
-
+# (C) Andrew Glushchenko 2020
+# REST API project v0.1
+# Blue prints for registration and login routes
+#
 from flask import Blueprint, jsonify
 from api_rest_serv import logger, session, docs
 from api_rest_serv.schemas import UserSchema, AuthSchema

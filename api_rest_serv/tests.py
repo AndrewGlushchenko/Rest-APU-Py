@@ -1,3 +1,7 @@
+# (C) Andrew Glushchenko 2020
+# REST API project v0.1
+# Test module
+#
 from . import *
 
 # NOTES: First element in bd have to use id=11

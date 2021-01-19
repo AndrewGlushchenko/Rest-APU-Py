@@ -1,3 +1,7 @@
+# (C) Andrew Glushchenko 2020
+# REST API project v0.1
+# Data scheme
+#
 from marshmallow import Schema, validate, fields
 
 
