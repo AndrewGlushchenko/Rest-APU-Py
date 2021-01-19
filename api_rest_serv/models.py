@@ -14,8 +14,8 @@ class NW_Elements(Base):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     ip_address = db.Column(db.String(15), nullable=False)
-    name = db.Column(db.String(80),nullable=False)
-    description = db.Column(db.String(500),nullable=False)
+    name = db.Column(db.String(80), nullable=False)
+    description = db.Column(db.String(500), nullable=False)
 
     @classmethod
     def getElementList(cls, user_id):
@@ -26,6 +26,7 @@ class NW_Elements(Base):
             session.rollback()
             raise
         return elements
+
     pass
 
     def save(self):
@@ -57,8 +58,8 @@ class NW_Elements(Base):
         except Exception:
             session.rollback()
             raise
-    pass
 
+    pass
 
     def delete(self):
         try:
@@ -68,7 +69,6 @@ class NW_Elements(Base):
             session.rollback()
             raise
     pass
-
 
 
 class User(Base):
@@ -83,6 +83,7 @@ class User(Base):
         self.name = kwargs.get('name')
         self.email = kwargs.get('email')
         self.password = bcrypt.hash(kwargs.get('password'))
+
     pass
 
     def get_token(self, expire_time=24):
@@ -90,6 +91,7 @@ class User(Base):
         token = create_access_token(
             identity=self.id, expires_delta=expire_delta)
         return token
+
     pass
 
     @classmethod
@@ -98,9 +100,10 @@ class User(Base):
         if not bcrypt.verify(password, user.password):
             raise Exception('No user with this password')
         return user
+
     pass
 
 
-def AddElements(id_el, id_us,  addr, name_el, decsr=''):
+def AddElements(id_el, id_us, addr, name_el, decsr=''):
     v1 = NW_Elements(id=id_el, user_id=id_us, ip_address=addr, name=name_el, description=decsr)
     v1.save()

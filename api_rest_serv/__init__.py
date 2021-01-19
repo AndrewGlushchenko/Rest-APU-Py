@@ -11,6 +11,8 @@ from flask_apispec.extension import FlaskApiSpec
 import logging
 from flask_cors import CORS
 
+print("KEY:", Config.SECRET_KEY)
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
